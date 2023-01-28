@@ -1,3 +1,4 @@
+import 'package:clima/screens/city_screen.dart';
 import 'package:clima/services/weather.dart';
 import 'package:clima/utilities/constants.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,13 @@ class _LocationScreenState extends State<LocationScreen> {
 
   void updateUI(dynamic data) {
     setState(() {
+      if (data == null) {
+        temperature = 0;
+        weatherIcon = 'Error';
+        weatherLine = 'Could not retrieve weather data';
+        cityName = '';
+      }
+
       temperature = data['main']['temp'];
       var condition = data['weather'][0]['id'];
       weatherIcon = weatherModel.getWeatherIcon(condition);
@@ -57,14 +65,29 @@ class _LocationScreenState extends State<LocationScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      var weatherData = await weatherModel.getWeatherData();
+                      updateUI(weatherData);
+                    },
                     child: Icon(
                       Icons.near_me,
                       size: 50.0,
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      var typedName = await Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return CityScreen();
+                      }));
+
+                      print(typedName);
+
+                      if (typedName != null) {
+                        var data = await weatherModel.getCityWeather(typedName);
+                        updateUI(data);
+                      }
+                    },
                     child: Icon(
                       Icons.location_city,
                       size: 50.0,
@@ -77,7 +100,7 @@ class _LocationScreenState extends State<LocationScreen> {
                 child: Row(
                   children: <Widget>[
                     Text(
-                      temperature.toInt().toString(),
+                      "${temperature.toInt().toString()}°",
                       style: kTempTextStyle,
                     ),
                     Text(
